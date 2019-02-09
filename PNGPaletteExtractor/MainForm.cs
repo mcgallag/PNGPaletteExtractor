@@ -1,12 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using WingCommanderMemoryReader;
 
@@ -17,8 +11,7 @@ namespace PNGPaletteExtractor
         OpenFileDialog openPNGDialog;
         OpenFileDialog openPaletteDialog;
         SaveFileDialog savePaletteDialog;
-        Bitmap capturedImage;
-        Bitmap rightVDUImage;
+
         Color[] palette = null;
         MemoryReader mem;
 
@@ -26,6 +19,7 @@ namespace PNGPaletteExtractor
         {
             InitializeComponent();
 
+            // create the memory reader interface
             mem = new MemoryReader(GameMode.WC2);
 
             openPNGDialog = new OpenFileDialog
@@ -44,13 +38,19 @@ namespace PNGPaletteExtractor
                 RestoreDirectory = true
             };
 
-            capturedImage = new Bitmap(320, 200);
-            rightVDUImage = new Bitmap(75, 65);
+
+            // HACK - for debug purposes
             PaletteInputFileTextBox.Text = "F:\\GOG Games\\Wing Commander II\\capture\\palette.dat";
             palette = LoadPaletteFromFile(PaletteInputFileTextBox.Text);
+
             DOSBoxTimer.Interval = 1000 / (int)FPSValueUpDown.Value;
         }
 
+        /// <summary>
+        /// opens a PNG from disk and generates a palette from it
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void OpenPNGButton_Click(object sender, EventArgs e)
         {
             if (openPNGDialog.ShowDialog() == DialogResult.OK)
@@ -64,6 +64,11 @@ namespace PNGPaletteExtractor
             }
         }
 
+        /// <summary>
+        /// opens an extracted palette file from disk
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void OpenPaletteButton_Click(object sender, EventArgs e)
         {
             if (openPaletteDialog.ShowDialog() == DialogResult.OK)
@@ -73,11 +78,19 @@ namespace PNGPaletteExtractor
             }
         }
 
+        /// <summary>
+        /// generates a palette from a file
+        /// </summary>
+        /// <param name="filename">.DAT File from which to load</param>
+        /// <returns>Color array with palette loaded by index</returns>
         private Color[] LoadPaletteFromFile(string filename)
         {
             Color[] inputPalette = new Color[256];
+
             using (FileStream inputStream = File.OpenRead(filename))
             {
+                // my .dat palette files are 256*3 bytes long
+                // each 3-byte tuple is (red,green,blue)
                 for (int i = 0; i < inputPalette.Length; i++)
                 {
                     int r, g, b;
@@ -90,10 +103,16 @@ namespace PNGPaletteExtractor
             return inputPalette;
         }
 
+        /// <summary>
+        /// Generates a .DAT palette and writes it to disk
+        /// </summary>
+        /// <param name="filename">filename to save</param>
+        /// <param name="paletteArray">color palette</param>
         private void WritePaletteToFile(string filename, Color[] paletteArray)
         {
             using (FileStream outputStream = File.OpenWrite(filename))
             {
+                // write each 3-byte tuple to disk in R/G/B order
                 foreach (Color c in paletteArray)
                 {
                     outputStream.WriteByte(c.R);
@@ -103,6 +122,11 @@ namespace PNGPaletteExtractor
             }
         }
 
+        /// <summary>
+        /// prompt user for filename and save palette to disk
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void ExtractButton_Click(object sender, EventArgs e)
         {
             if (savePaletteDialog.ShowDialog() == DialogResult.OK)
@@ -112,6 +136,11 @@ namespace PNGPaletteExtractor
             }
         }
 
+        /// <summary>
+        /// detach from DOSBox process
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void DetachDOSBoxButton_Click(object sender, EventArgs e)
         {
             if (DOSBoxTimer.Enabled)
@@ -120,17 +149,32 @@ namespace PNGPaletteExtractor
                 DOSBoxButton.Text = "Attach";
                 DOSBoxButton.Click -= DetachDOSBoxButton_Click;
                 DOSBoxButton.Click += AttachDOSBoxButton_Click;
-                ResetForm();
+                ResetForm(); // clear DOSBox's text fields
             }
         }
 
+        /// <summary>
+        /// clears all DOSBox form controls
+        /// </summary>
         private void ResetForm()
         {
             VGAPictureBox.Image = null;
             LeftVDUPictureBox.Image = null;
-            PlayerCallsignTextBox.Text = null;
+            RightVDUPictureBox.Image = null;
+
+            // HACK - probably a more elegant way of doing this, but it works
+            foreach (Control control in DOSBoxTextPanel.Controls)
+            {
+                if (control is TextBox)
+                    control.Text = "";
+            }
         }
 
+        /// <summary>
+        /// attach the memory interface to the DOSBox process, starts the form update timer
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void AttachDOSBoxButton_Click(object sender, EventArgs e)
         {
             if (mem.OpenProc == false)
@@ -143,31 +187,35 @@ namespace PNGPaletteExtractor
             DOSBoxButton.Click += DetachDOSBoxButton_Click;
         }
 
+        /// <summary>
+        /// called every frame, updates text fields and image captures
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void DOSBoxTimer_Tick(object sender, EventArgs e)
         {
+            // TODO - maybe encapsulate this into a structure
             PlayerCallsignTextBox.Text = mem.GetPlayerCallsign();
             PlayerFirstNameTextBox.Text = mem.GetPlayerFirstName();
             PlayerLastNameTextBox.Text = mem.GetPlayerLastName();
             WingmanCallsignTextBox.Text = mem.GetWingmanCallsign();
             PlayerCurrentKillsTextBox.Text = mem.GetCurrentKills().ToString();
             WingmanCurrentKillsTextBox.Text = mem.GetWingmanKills().ToString();
+            PlayerShipTextBox.Text = mem.GetPlayerShipName();
+            PlayerTotalKillsTextBox.Text = mem.GetTotalPlayerKills().ToString();
 
-            byte[] buffer = mem.GetVGABuffer();
-            for (int i = 0; i < buffer.Length; i++)
-            {
-                capturedImage.SetPixel(i % 320, i / 320, palette[buffer[i]]);
-                if (i / 320 >= 98 && (i / 320 < (98+65)))
-                {
-                    if (i % 320 >= 122 && (i % 320) < (122 + 75))
-                    {
-                        rightVDUImage.SetPixel((i % 320) - 122, (i / 320) - 98, palette[buffer[i]]);
-                    }
-                }
-            }
-            VGAPictureBox.Image = capturedImage;
-            RightVDUPictureBox.Image = rightVDUImage;
+            // capture the VGA buffer and separate into VDUs
+            Bitmap[] captures = mem.GetDisplayAndVDUs(palette);
+            VGAPictureBox.Image = captures[0];
+            RightVDUPictureBox.Image = captures[1];
+            LeftVDUPictureBox.Image = captures[2];
         }
 
+        /// <summary>
+        /// Update the rate at which to call the Timer function
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void FPSValueUpDown_ValueChanged(object sender, EventArgs e)
         {
             DOSBoxTimer.Interval = 1000 / (int)FPSValueUpDown.Value;

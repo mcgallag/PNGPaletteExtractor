@@ -57,10 +57,16 @@
             this.WingmanCurrentKillsTextBox = new System.Windows.Forms.TextBox();
             this.label10 = new System.Windows.Forms.Label();
             this.label11 = new System.Windows.Forms.Label();
+            this.PlayerShipTextBox = new System.Windows.Forms.TextBox();
+            this.label12 = new System.Windows.Forms.Label();
+            this.DOSBoxTextPanel = new System.Windows.Forms.Panel();
+            this.label13 = new System.Windows.Forms.Label();
+            this.PlayerTotalKillsTextBox = new System.Windows.Forms.TextBox();
             ((System.ComponentModel.ISupportInitialize)(this.VGAPictureBox)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.LeftVDUPictureBox)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.FPSValueUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.RightVDUPictureBox)).BeginInit();
+            this.DOSBoxTextPanel.SuspendLayout();
             this.SuspendLayout();
             // 
             // label1
@@ -138,7 +144,7 @@
             // 
             // DOSBoxButton
             // 
-            this.DOSBoxButton.Location = new System.Drawing.Point(369, 72);
+            this.DOSBoxButton.Location = new System.Drawing.Point(366, 72);
             this.DOSBoxButton.Name = "DOSBoxButton";
             this.DOSBoxButton.Size = new System.Drawing.Size(106, 23);
             this.DOSBoxButton.TabIndex = 9;
@@ -148,7 +154,7 @@
             // 
             // PlayerCallsignTextBox
             // 
-            this.PlayerCallsignTextBox.Location = new System.Drawing.Point(366, 116);
+            this.PlayerCallsignTextBox.Location = new System.Drawing.Point(3, 19);
             this.PlayerCallsignTextBox.Name = "PlayerCallsignTextBox";
             this.PlayerCallsignTextBox.ReadOnly = true;
             this.PlayerCallsignTextBox.Size = new System.Drawing.Size(106, 20);
@@ -157,7 +163,7 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(366, 100);
+            this.label3.Location = new System.Drawing.Point(3, 3);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(78, 13);
             this.label3.TabIndex = 11;
@@ -221,7 +227,7 @@
             // 
             // PlayerFirstNameTextBox
             // 
-            this.PlayerFirstNameTextBox.Location = new System.Drawing.Point(366, 194);
+            this.PlayerFirstNameTextBox.Location = new System.Drawing.Point(3, 136);
             this.PlayerFirstNameTextBox.Name = "PlayerFirstNameTextBox";
             this.PlayerFirstNameTextBox.ReadOnly = true;
             this.PlayerFirstNameTextBox.Size = new System.Drawing.Size(106, 20);
@@ -230,7 +236,7 @@
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(366, 178);
+            this.label6.Location = new System.Drawing.Point(3, 120);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(92, 13);
             this.label6.TabIndex = 11;
@@ -238,7 +244,7 @@
             // 
             // PlayerLastNameTextBox
             // 
-            this.PlayerLastNameTextBox.Location = new System.Drawing.Point(366, 233);
+            this.PlayerLastNameTextBox.Location = new System.Drawing.Point(3, 175);
             this.PlayerLastNameTextBox.Name = "PlayerLastNameTextBox";
             this.PlayerLastNameTextBox.ReadOnly = true;
             this.PlayerLastNameTextBox.Size = new System.Drawing.Size(106, 20);
@@ -247,7 +253,7 @@
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(366, 217);
+            this.label7.Location = new System.Drawing.Point(3, 159);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(93, 13);
             this.label7.TabIndex = 17;
@@ -275,7 +281,7 @@
             // 
             // WingmanCallsignTextBox
             // 
-            this.WingmanCallsignTextBox.Location = new System.Drawing.Point(482, 116);
+            this.WingmanCallsignTextBox.Location = new System.Drawing.Point(119, 19);
             this.WingmanCallsignTextBox.Name = "WingmanCallsignTextBox";
             this.WingmanCallsignTextBox.ReadOnly = true;
             this.WingmanCallsignTextBox.Size = new System.Drawing.Size(106, 20);
@@ -284,7 +290,7 @@
             // label9
             // 
             this.label9.AutoSize = true;
-            this.label9.Location = new System.Drawing.Point(482, 100);
+            this.label9.Location = new System.Drawing.Point(119, 3);
             this.label9.Name = "label9";
             this.label9.Size = new System.Drawing.Size(94, 13);
             this.label9.TabIndex = 22;
@@ -292,7 +298,7 @@
             // 
             // PlayerCurrentKillsTextBox
             // 
-            this.PlayerCurrentKillsTextBox.Location = new System.Drawing.Point(366, 155);
+            this.PlayerCurrentKillsTextBox.Location = new System.Drawing.Point(3, 58);
             this.PlayerCurrentKillsTextBox.Name = "PlayerCurrentKillsTextBox";
             this.PlayerCurrentKillsTextBox.ReadOnly = true;
             this.PlayerCurrentKillsTextBox.Size = new System.Drawing.Size(106, 20);
@@ -300,7 +306,7 @@
             // 
             // WingmanCurrentKillsTextBox
             // 
-            this.WingmanCurrentKillsTextBox.Location = new System.Drawing.Point(482, 155);
+            this.WingmanCurrentKillsTextBox.Location = new System.Drawing.Point(119, 58);
             this.WingmanCurrentKillsTextBox.Name = "WingmanCurrentKillsTextBox";
             this.WingmanCurrentKillsTextBox.ReadOnly = true;
             this.WingmanCurrentKillsTextBox.Size = new System.Drawing.Size(106, 20);
@@ -309,7 +315,7 @@
             // label10
             // 
             this.label10.AutoSize = true;
-            this.label10.Location = new System.Drawing.Point(366, 139);
+            this.label10.Location = new System.Drawing.Point(3, 42);
             this.label10.Name = "label10";
             this.label10.Size = new System.Drawing.Size(103, 13);
             this.label10.TabIndex = 25;
@@ -318,35 +324,81 @@
             // label11
             // 
             this.label11.AutoSize = true;
-            this.label11.Location = new System.Drawing.Point(482, 139);
+            this.label11.Location = new System.Drawing.Point(119, 42);
             this.label11.Name = "label11";
             this.label11.Size = new System.Drawing.Size(119, 13);
             this.label11.TabIndex = 26;
             this.label11.Text = "Wingman Kills (mission):";
             // 
+            // PlayerShipTextBox
+            // 
+            this.PlayerShipTextBox.Location = new System.Drawing.Point(119, 136);
+            this.PlayerShipTextBox.Name = "PlayerShipTextBox";
+            this.PlayerShipTextBox.ReadOnly = true;
+            this.PlayerShipTextBox.Size = new System.Drawing.Size(106, 20);
+            this.PlayerShipTextBox.TabIndex = 27;
+            // 
+            // label12
+            // 
+            this.label12.AutoSize = true;
+            this.label12.Location = new System.Drawing.Point(119, 120);
+            this.label12.Name = "label12";
+            this.label12.Size = new System.Drawing.Size(94, 13);
+            this.label12.TabIndex = 28;
+            this.label12.Text = "Player Ship Name:";
+            // 
+            // DOSBoxTextPanel
+            // 
+            this.DOSBoxTextPanel.Controls.Add(this.PlayerTotalKillsTextBox);
+            this.DOSBoxTextPanel.Controls.Add(this.label13);
+            this.DOSBoxTextPanel.Controls.Add(this.label3);
+            this.DOSBoxTextPanel.Controls.Add(this.label12);
+            this.DOSBoxTextPanel.Controls.Add(this.PlayerCallsignTextBox);
+            this.DOSBoxTextPanel.Controls.Add(this.PlayerShipTextBox);
+            this.DOSBoxTextPanel.Controls.Add(this.label6);
+            this.DOSBoxTextPanel.Controls.Add(this.label11);
+            this.DOSBoxTextPanel.Controls.Add(this.PlayerFirstNameTextBox);
+            this.DOSBoxTextPanel.Controls.Add(this.label10);
+            this.DOSBoxTextPanel.Controls.Add(this.label7);
+            this.DOSBoxTextPanel.Controls.Add(this.WingmanCurrentKillsTextBox);
+            this.DOSBoxTextPanel.Controls.Add(this.PlayerLastNameTextBox);
+            this.DOSBoxTextPanel.Controls.Add(this.PlayerCurrentKillsTextBox);
+            this.DOSBoxTextPanel.Controls.Add(this.WingmanCallsignTextBox);
+            this.DOSBoxTextPanel.Controls.Add(this.label9);
+            this.DOSBoxTextPanel.Location = new System.Drawing.Point(366, 99);
+            this.DOSBoxTextPanel.Name = "DOSBoxTextPanel";
+            this.DOSBoxTextPanel.Size = new System.Drawing.Size(241, 302);
+            this.DOSBoxTextPanel.TabIndex = 29;
+            // 
+            // label13
+            // 
+            this.label13.AutoSize = true;
+            this.label13.Location = new System.Drawing.Point(3, 81);
+            this.label13.Name = "label13";
+            this.label13.Size = new System.Drawing.Size(89, 13);
+            this.label13.TabIndex = 29;
+            this.label13.Text = "Player Kills (total):";
+            // 
+            // PlayerTotalKillsTextBox
+            // 
+            this.PlayerTotalKillsTextBox.Location = new System.Drawing.Point(3, 97);
+            this.PlayerTotalKillsTextBox.Name = "PlayerTotalKillsTextBox";
+            this.PlayerTotalKillsTextBox.ReadOnly = true;
+            this.PlayerTotalKillsTextBox.Size = new System.Drawing.Size(106, 20);
+            this.PlayerTotalKillsTextBox.TabIndex = 30;
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(597, 464);
-            this.Controls.Add(this.label11);
-            this.Controls.Add(this.label10);
-            this.Controls.Add(this.WingmanCurrentKillsTextBox);
-            this.Controls.Add(this.PlayerCurrentKillsTextBox);
-            this.Controls.Add(this.label9);
-            this.Controls.Add(this.WingmanCallsignTextBox);
+            this.ClientSize = new System.Drawing.Size(611, 464);
+            this.Controls.Add(this.DOSBoxTextPanel);
             this.Controls.Add(this.label8);
             this.Controls.Add(this.RightVDUPictureBox);
-            this.Controls.Add(this.PlayerLastNameTextBox);
-            this.Controls.Add(this.label7);
-            this.Controls.Add(this.PlayerFirstNameTextBox);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.FPSValueUpDown);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.LeftVDUPictureBox);
-            this.Controls.Add(this.label6);
-            this.Controls.Add(this.label3);
-            this.Controls.Add(this.PlayerCallsignTextBox);
             this.Controls.Add(this.DOSBoxButton);
             this.Controls.Add(this.VGAPictureBox);
             this.Controls.Add(this.ExtractButton);
@@ -363,6 +415,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.LeftVDUPictureBox)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.FPSValueUpDown)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.RightVDUPictureBox)).EndInit();
+            this.DOSBoxTextPanel.ResumeLayout(false);
+            this.DOSBoxTextPanel.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -398,6 +452,11 @@
         private System.Windows.Forms.TextBox WingmanCurrentKillsTextBox;
         private System.Windows.Forms.Label label10;
         private System.Windows.Forms.Label label11;
+        private System.Windows.Forms.TextBox PlayerShipTextBox;
+        private System.Windows.Forms.Label label12;
+        private System.Windows.Forms.Panel DOSBoxTextPanel;
+        private System.Windows.Forms.TextBox PlayerTotalKillsTextBox;
+        private System.Windows.Forms.Label label13;
     }
 }
 
