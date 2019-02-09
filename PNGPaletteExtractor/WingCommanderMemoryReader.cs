@@ -1,8 +1,12 @@
 ﻿using System;
+using System.Drawing;
 using Memory;
 
 namespace WingCommanderMemoryReader
 {
+    /// <summary>
+    /// internal representation of which game to read from, used for indexing some variables
+    /// </summary>
     enum GameMode
     {
         WC1, WC2
@@ -16,33 +20,14 @@ namespace WingCommanderMemoryReader
         // used for interfacing with DOSBox
         private Mem m;
         private int pid;
-        private GameMode game;
+
+        // to track which game we are playing, and therefore memory offsets
+        private readonly GameMode game;
 
         /// <summary>
         /// true if successfully hooked to the DOSBox process
         /// </summary>
         public bool OpenProc { get; private set; } = false;
-
-        private const string callSignOffsetWC2 = "0x27C9B"; // WC2
-        private const string callSignOffsetWC1 = "0x1E040"; // WC1
-        /// <summary>
-        /// memory offset for player callsign
-        /// </summary>
-        private string CallSignOffset
-        {
-            get
-            {
-                switch(game)
-                {
-                    case GameMode.WC1:
-                        return callSignOffsetWC1;
-                    case GameMode.WC2:
-                        return callSignOffsetWC2;
-                    default:
-                        return "";
-                }
-            }
-        }
 
         /// <summary>
         /// base memory address for DOSBox RAM
@@ -50,13 +35,40 @@ namespace WingCommanderMemoryReader
         private const string memoryBase = "0x01D3A1A0";
 
         /// <summary>
+        /// memory offset for player callsign
+        /// </summary>
+        private string CallSignOffset
+        {
+            get => callSignOffsets[(int)game];
+        }
+        private readonly string[] callSignOffsets = {
+            "0x1E040", "0x27C9B"
+        };
+
+        /// <summary>
         /// memory offset for wingman callsign
         /// </summary>
-        private const string wingmanCallsignOffsetWC2 = "0x2AC86"; // WC2
+        private string WingmanCallsignOffset
+        {
+            get => wingmanCallsignOffsets[(int)game];
+        }
+        private readonly string[] wingmanCallsignOffsets =
+        {
+            "", "0x2AC86"
+        };
+
         /// <summary>
         /// memory offset for wingman kills
         /// </summary>
-        private const string wingmanKillsOffsetWC2 = "0x302d2"; // WC2
+        private string WingmanKillsOffset
+        {
+            get => wingmanKillsOffsets[(int)game];
+        }
+        private readonly string[] wingmanKillsOffsets =
+        {
+            "", "0x302d2"
+        };
+
         /// <summary>
         /// memory offset for player first name
         /// </summary>
@@ -86,79 +98,80 @@ namespace WingCommanderMemoryReader
         /// </summary>
         private string SortiesOffset
         {
-            get
-            {
-                switch(game)
-                {
-                    case GameMode.WC1:
-                        return sortiesOffsetWC1;
-                    case GameMode.WC2:
-                        return sortiesOffsetWC2;
-                    default:
-                        return "";
-                }
-            }
+            get => sortiesOffsets[(int)game];
         }
-        private const string sortiesOffsetWC1 = "0x1E052";
-        private const string sortiesOffsetWC2 = "0x27CAA";
+        private readonly string[] sortiesOffsets =
+        {
+            "0x1E052", "0x27CAA"
+        };
 
         /// <summary>
-        /// memory offset for player's board kills
+        /// memory offset for player's total kills
         /// </summary>
-        private const string boardKillsOffsetWC1 = "0x1E054";
+        private string TotalKillsOffset
+        {
+            get
+            {
+                return totalKillsOffsets[(int)game];
+            }
+        }
+        private readonly string[] totalKillsOffsets =
+        {
+            "0x1E054", "0x27CAC"
+        };
 
-        private const string currentKillsOffsetWC1 = "0x1E402";
-        private const string currentKillsOffsetWC2 = "0x302C8";
         /// <summary>
         /// memory offset for player's in-mission kills
         /// </summary>
         private string CurrentKillsOffset
         {
-            get
-            {
-                switch (game)
-                {
-                    case GameMode.WC1:
-                        return currentKillsOffsetWC1;
-                    case GameMode.WC2:
-                        return currentKillsOffsetWC2;
-                    default:
-                        return "";
-                }
-            }
+            get => currentKillsOffsets[(int)game];
         }
-
+        private readonly string[] currentKillsOffsets =
+        {
+            "0x1E402", "0x302C8"
+        };
 
         /// <summary>
         /// memory offset for player's rank value
         /// </summary>
-        private const string rankOffsetWC1 = "0x1E050";
+        private string RankOffset
+        {
+            get => rankOffsets[(int)game];
+        }
+        private readonly string[] rankOffsets =
+        {
+            "0x1E050", ""
+        };
 
-        private const string setKpsOffsetWC1 = "0x1FFE7";
-        private const string setKpsOffsetWC2 = "0x295FF";
         /// <summary>
         /// memory offset for player's ship kps
         /// </summary>
-        private string SetKpsOffsetWC2
+        private string SetKpsOffset
         {
-            get
-            {
-                switch (game)
-                {
-                    case GameMode.WC1:
-                        return currentKillsOffsetWC1;
-                    case GameMode.WC2:
-                        return currentKillsOffsetWC2;
-                    default:
-                        return "";
-                }
-            }
+            get => setKpsOffsets[(int)game];
         }
+        private readonly string[] setKpsOffsets =
+        {
+            "0x1FFE7", "0x295FF"
+        };
 
         /// <summary>
         /// memory offset for player's remaining afterburner fuel
         /// </summary>
         private const string remainingFuelOffsetWC1 = "0x2045C"; //WC1
+
+        /// <summary>
+        /// memory offset for player's ship name
+        /// </summary>
+        private string PlayerShipOffset
+        {
+            get => playerShipOffset[(int)game];
+        }
+        private readonly string[] playerShipOffset =
+        {
+            "", "0x24AFC"
+        };
 
         /// <summary>
         /// used to properly calcuate number of player kills, set when we enter Halcyon's debriefing and cleared at mission start
@@ -208,6 +221,9 @@ namespace WingCommanderMemoryReader
             }
         }
 
+        /// <summary>
+        /// detaches the memory reader interface from DOSBox
+        /// </summary>
         public void Detach()
         {
             if (OpenProc)
@@ -217,6 +233,127 @@ namespace WingCommanderMemoryReader
             }
         }
 
+        /// <summary>
+        /// gets current ship index for Ship VDU layout
+        /// </summary>
+        private int GetPlayerShipIndex()
+        {
+            switch (GetPlayerShipName())
+            {
+                case "Ferret":
+                    return 0;
+                case "Broadsword":
+                    return 1;
+                case "Rapier":
+                    return 2;
+                case "Epee":
+                    return 3;
+                case "Sabre":
+                    return 4;
+            }
+            return -1;
+        }
+
+        /// <summary>
+        /// top-left pixel boundary of the Right VDU
+        /// </summary>
+        private Point RightVduOffset
+        {
+            get => rightVduOffsetPoints[GetPlayerShipIndex()];
+        }
+        private readonly Point[] rightVduOffsetPoints =
+        {
+            new Point(122, 98),     // ferret
+            new Point(240, 132),    // broadsword
+            new Point(245, 97),     // rapier
+            new Point(188, 91),     // epee
+            new Point(240, 133)     // sabre
+        };
+
+        /// <summary>
+        /// top-left pixel boundary of the Left VDU
+        /// </summary>
+        private Point LeftVduOffset
+        {
+            get => leftVduOffsetPoints[GetPlayerShipIndex()];
+        }
+        private readonly Point[] leftVduOffsetPoints =
+        {
+            new Point(0, 0),    // ferret
+            new Point(4, 132),  // broadsword
+            new Point(0, 97),   // rapier
+            new Point(55, 91),  // epee
+            new Point(4, 133)   // sabre
+        };
+
+        /// <summary>
+        /// pixel size of the VDU
+        /// </summary>
+        private Size VduSize
+        {
+            get => vduSize[GetPlayerShipIndex()];
+        }
+        private readonly Size[] vduSize =
+        {
+            new Size(75, 65),   // ferret
+            new Size(75, 65),   // broadsword
+            new Size(75, 70),   // rapier
+            new Size(75, 65),   // epee
+            new Size(75, 65)    // sabre
+        };
+
+        /// <summary>
+        /// Generates bitmaps for VGA buffer and VDUs.
+        /// If a ship only has one VDU, the odd (left) VDU will be empty
+        /// </summary>
+        /// <param name="palette">palette to draw colors from</param>
+        /// <returns>Array of 3 bitmaps (VGA buffer, left VDU, right VDU)</returns>
+        public Bitmap[] GetDisplayAndVDUs(Color[] palette)
+        {
+            int shipindex = GetPlayerShipIndex();
+            Size vdusize = VduSize;
+            Bitmap[] images = {
+                new Bitmap(320, 200),
+                new Bitmap(vdusize.Width, vdusize.Height),
+                new Bitmap(vdusize.Width, vdusize.Height)
+            };
+            Point offsetLeft = LeftVduOffset;
+            Point offsetRight = RightVduOffset;
+
+            // get the current VGA buffer
+            byte[] buffer = GetVGABuffer();
+
+            for (int i = 0; i < buffer.Length; i++)
+            {
+                // write directly to the bitmap representing the VGA buffer
+                images[0].SetPixel(i % 320, i / 320, palette[buffer[i]]);
+
+                // if we are within bounds of the right VDU, then write to it
+                if (i / 320 >= offsetRight.Y && (i / 320 < (offsetRight.Y + vdusize.Height)))
+                {
+                    if (i % 320 >= offsetRight.X && (i % 320) < (offsetRight.X + vdusize.Width))
+                    {
+                        images[1].SetPixel((i % 320) - offsetRight.X, (i / 320) - offsetRight.Y, palette[buffer[i]]);
+                    }
+                }
+
+                // if we are within bounds of the left VDU, then write to it
+                if (offsetLeft.Y != 0 && i / 320 >= offsetLeft.Y && (i / 320 < (offsetLeft.Y + vdusize.Height)))
+                {
+                    if (i % 320 >= offsetLeft.X && (i % 320) < (offsetLeft.X + vdusize.Width))
+                    {
+                        images[2].SetPixel((i % 320) - offsetLeft.X, (i / 320) - offsetLeft.Y, palette[buffer[i]]);
+                    }
+                }
+            }
+
+            return images;
+        }
+
+        /// <summary>
+        /// Fetches the VGA buffer from DOSBox's memory
+        /// </summary>
+        /// <returns>64000 byte VGA buffer array</returns>
         public byte[] GetVGABuffer()
         {
             if (OpenProc)
@@ -235,7 +372,7 @@ namespace WingCommanderMemoryReader
         {
             if (OpenProc)
             {
-                string addr = memoryBase + "," + SetKpsOffsetWC2;
+                string addr = memoryBase + "," + SetKpsOffset;
                 return m.readByte(addr) * 10;
             }
             throw new DOSBoxMemoryException("Must hook to DOSBox process before reading memory.");
@@ -261,9 +398,11 @@ namespace WingCommanderMemoryReader
         /// <returns>player name, empty string if game doesn't support it</returns>
         public string GetPlayerLastName()
         {
-            if (game == GameMode.WC1) return "";
             if (OpenProc)
             {
+                // WC1 is first-name only
+                if (game == GameMode.WC1) return "";
+
                 string addr = memoryBase + "," + PlayerLastNameOffset;
                 return m.readString(addr, length: 14);
             }
@@ -279,7 +418,7 @@ namespace WingCommanderMemoryReader
             if (OpenProc)
             {
                 string addr = memoryBase + "," + CallSignOffset;
-                return m.readString(addr, length: 10);
+                return m.readString(addr, length: 12);
             }
             throw new DOSBoxMemoryException("Must hook to DOSBox process before reading memory.");
         }
@@ -292,8 +431,22 @@ namespace WingCommanderMemoryReader
         {
             if (OpenProc)
             {
-                string addr = memoryBase + "," + wingmanCallsignOffsetWC2;
-                return m.readString(addr, length: 10).TrimStart();
+                string addr = memoryBase + "," + WingmanCallsignOffset;
+                return m.readString(addr).TrimStart();
+            }
+            throw new DOSBoxMemoryException("Must hook to DOSBox process before reading memory.");
+        }
+
+        /// <summary>
+        /// fetches the name of the player's current ship
+        /// </summary>
+        /// <returns>player ship model</returns>
+        public string GetPlayerShipName()
+        {
+            if (OpenProc)
+            {
+                string addr = memoryBase + "," + PlayerShipOffset;
+                return m.readString(addr);
             }
             throw new DOSBoxMemoryException("Must hook to DOSBox process before reading memory.");
         }
@@ -316,11 +469,11 @@ namespace WingCommanderMemoryReader
         /// fetches player killboard kills from DOSBox memory
         /// </summary>
         /// <returns>player killboard kill count</returns>
-        public int GetBoardKills()
+        public int GetTotalPlayerKills()
         {
             if (OpenProc)
             {
-                string addr = memoryBase + "," + boardKillsOffsetWC1;
+                string addr = memoryBase + "," + TotalKillsOffset;
                 return m.read2Byte(addr);
             }
             throw new DOSBoxMemoryException("Must hook to DOSBox process before reading memory.");
@@ -334,7 +487,7 @@ namespace WingCommanderMemoryReader
         {
             if (OpenProc)
             {
-                string addr = memoryBase + "," + wingmanKillsOffsetWC2;
+                string addr = memoryBase + "," + WingmanKillsOffset;
                 return m.readByte(addr);
             }
             throw new DOSBoxMemoryException("Must hook to DOSBox process before reading memory.");
@@ -363,7 +516,7 @@ namespace WingCommanderMemoryReader
         {
             if (OpenProc)
             {
-                string addr = memoryBase + "," + rankOffsetWC1;
+                string addr = memoryBase + "," + RankOffset;
                 return m.read2Byte(addr);
             }
             throw new DOSBoxMemoryException("Must hook to DOSBox process before reading memory.");
