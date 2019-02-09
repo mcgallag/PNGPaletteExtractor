@@ -4,7 +4,7 @@ using System.IO;
 using System.Windows.Forms;
 using WingCommanderMemoryReader;
 
-namespace PNGPaletteExtractor
+namespace WingCommanderArduinoBridge
 {
     public partial class MainForm : Form
     {

@@ -1,4 +1,4 @@
-﻿namespace PNGPaletteExtractor
+﻿namespace WingCommanderArduinoBridge
 {
     partial class MainForm
     {
@@ -60,8 +60,8 @@
             this.PlayerShipTextBox = new System.Windows.Forms.TextBox();
             this.label12 = new System.Windows.Forms.Label();
             this.DOSBoxTextPanel = new System.Windows.Forms.Panel();
-            this.label13 = new System.Windows.Forms.Label();
             this.PlayerTotalKillsTextBox = new System.Windows.Forms.TextBox();
+            this.label13 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.VGAPictureBox)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.LeftVDUPictureBox)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.FPSValueUpDown)).BeginInit();
@@ -370,6 +370,14 @@
             this.DOSBoxTextPanel.Size = new System.Drawing.Size(241, 302);
             this.DOSBoxTextPanel.TabIndex = 29;
             // 
+            // PlayerTotalKillsTextBox
+            // 
+            this.PlayerTotalKillsTextBox.Location = new System.Drawing.Point(3, 97);
+            this.PlayerTotalKillsTextBox.Name = "PlayerTotalKillsTextBox";
+            this.PlayerTotalKillsTextBox.ReadOnly = true;
+            this.PlayerTotalKillsTextBox.Size = new System.Drawing.Size(106, 20);
+            this.PlayerTotalKillsTextBox.TabIndex = 30;
+            // 
             // label13
             // 
             this.label13.AutoSize = true;
@@ -378,14 +386,6 @@
             this.label13.Size = new System.Drawing.Size(89, 13);
             this.label13.TabIndex = 29;
             this.label13.Text = "Player Kills (total):";
-            // 
-            // PlayerTotalKillsTextBox
-            // 
-            this.PlayerTotalKillsTextBox.Location = new System.Drawing.Point(3, 97);
-            this.PlayerTotalKillsTextBox.Name = "PlayerTotalKillsTextBox";
-            this.PlayerTotalKillsTextBox.ReadOnly = true;
-            this.PlayerTotalKillsTextBox.Size = new System.Drawing.Size(106, 20);
-            this.PlayerTotalKillsTextBox.TabIndex = 30;
             // 
             // MainForm
             // 
@@ -410,7 +410,7 @@
             this.Controls.Add(this.label1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Fixed3D;
             this.Name = "MainForm";
-            this.Text = "DOSBox Arduino Bridge";
+            this.Text = "Wing Commander Arduino Bridge";
             ((System.ComponentModel.ISupportInitialize)(this.VGAPictureBox)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.LeftVDUPictureBox)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.FPSValueUpDown)).EndInit();

@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace PNGPaletteExtractor.Properties
+namespace WingCommanderArduinoBridge.Properties
 {
 
 

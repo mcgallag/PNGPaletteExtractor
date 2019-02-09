@@ -291,6 +291,7 @@ namespace WingCommanderMemoryReader
         /// </summary>
         private Size VduSize
         {
+            // BUG - throws exception when no valid ship name
             get => vduSize[GetPlayerShipIndex()];
         }
         private readonly Size[] vduSize =
