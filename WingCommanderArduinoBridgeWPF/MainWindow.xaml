@@ -1,0 +1,214 @@
+﻿<Window x:Class="WingCommanderArduinoBridgeWPF.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WingCommanderArduinoBridgeWPF"
+        mc:Ignorable="d"
+        Title="Gemini Librarian" Height="507" Width="631">
+  <Border HorizontalAlignment="Center" VerticalAlignment="Stretch" Margin="8">
+    <StackPanel>
+      <!-- Top: Inputs for PNG/Palette Extraction -->
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="4*"/>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        
+        <!-- TASK: super sloppy! Redo this-->
+        <!-- Labels for Textboxes -->
+        <StackPanel Grid.Column="0">
+          <TextBlock Text="PNG Input:" Margin="0 3 4 3"
+                   TextAlignment="Right"/>
+          <TextBlock Text="Palette Input:" Margin="0 7 4 0"
+                   TextAlignment="Right"/>
+        </StackPanel>
+        
+        <!-- File I/O Textboxes -->
+        <StackPanel Grid.Column="1">
+          <!-- PNG File Textbox-->
+          <TextBox x:Name="PNGTextBox" Padding="2" Margin="0 0 0 2"/>
+          
+          <!-- Palette File Textbox -->
+          <TextBox x:Name="PaletteTextBox" Padding="2" Margin="0 2 0 0"/>
+        </StackPanel>
+        
+        <!-- Buttons for File I/O -->
+        <StackPanel Grid.Column="2">
+          <!-- PNG Open File Button -->
+          <Button x:Name="PNGBrowseButton" Content="Browse..."
+                  Height="22" Margin="7 0 3 4"/>
+          <!-- Palette Open File Button -->
+          <Button x:Name="PaletteBrowseButton" Content="Browse..."
+                  Height="22" Margin="7 0 3 4"/>
+        </StackPanel>
+        
+        <!-- Extract PNG palette to save file button -->
+        <StackPanel Grid.Column="3">
+          <Button x:Name="ExtractPaletteButton" Content="Extract Palette" Height="22" Margin="3 26 0 4"/>
+        </StackPanel>
+      </Grid>
+      
+      <!-- Bottom: Fields for data pulled from DOSBox memory -->
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="3*"/>
+          <ColumnDefinition Width="2*"/>
+        </Grid.ColumnDefinitions>
+        <StackPanel HorizontalAlignment="Center" Grid.Column="0">
+          <!-- VGA Buffer Panel -->
+          <Border HorizontalAlignment="Left" Width="322" Margin="5 10"
+                  BorderBrush="Black" BorderThickness="1"
+                  Background="#AAA">
+            <Image x:Name="VGABufferImage" Width="320" Height="200"/>
+          </Border>
+          
+          <!-- Bottom VDU Displays Panel -->
+          <Grid Margin="5 0">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*"/>
+              <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            
+            <!-- Left VDU Inner Panel -->
+            <StackPanel Grid.Column="0">
+              <TextBlock Text="Left VDU:"/>
+              <Border HorizontalAlignment="Left"
+                      Width="152" Height="152" Margin="0 5"
+                      BorderBrush="Black" BorderThickness="1"
+                      Background="#AAA">
+                <Image x:Name="LeftVDUImage" Width="150" Height="150"/>
+              </Border>
+            </StackPanel>
+            
+            <!-- Right VDU Inner Panel -->
+            <StackPanel Grid.Column="1">
+              <TextBlock Text="Right VDU:"/>
+              <Border HorizontalAlignment="Left"
+                      Width="152" Height="152" Margin="0 5"
+                      BorderBrush="Black" BorderThickness="1"
+                      Background="#AAA">
+                <Image x:Name="RightVDUImage" Width="150" Height="150"/>
+              </Border>
+            </StackPanel>
+          </Grid>
+        </StackPanel>
+        <Grid Margin="0 6 0 0" Grid.Column="1">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+          </Grid.ColumnDefinitions>
+          
+          <!-- Left Column Controls -->
+          <StackPanel Grid.Column="0" Margin="6 3">
+            <!-- DOSBox Attach Button -->
+            <Button x:Name="DOSBoxAttachButton" Height="22"
+                    Content="Attach to DOSBox"/>
+            
+            <!-- Player Callsign -->
+            <TextBlock Margin="0 5 0 2" Text="Player Callsign:"/>
+            <TextBox x:Name="PlayerCallsignTextBox"
+                     IsReadOnly="True" Padding="2"/>
+
+            <!-- Player Kills in Mission -->
+            <TextBlock Margin="0 5 0 2" Text="Player Kills (mission):"/>
+            <TextBox x:Name="PlayerMissionKillsTextBox"
+                     IsReadOnly="True" Padding="2"/>
+            
+            <!-- Player Kills Total -->
+            <TextBlock Margin="0 5 0 2" Text="Player Kills (total):"/>
+            <TextBox x:Name="PlayerTotalKillsTextBox"
+                     IsReadOnly="True" Padding="2"/>
+            
+            <!-- Player First Name -->
+            <TextBlock Margin="0 5 0 2" Text="Player First Name:"/>
+            <TextBox x:Name="PlayerFirstNameTextBox"
+                     IsReadOnly="True" Padding="2"/>
+            
+            <!-- Player Last Name -->
+            <TextBlock Margin="0 5 0 2" Text="Player Last Name:"/>
+            <TextBox x:Name="PlayerLastNameTextBox"
+                     IsReadOnly="True" Padding="2"/>
+          </StackPanel>
+          
+          <!-- Afterburner Fuel Level -->
+          <StackPanel VerticalAlignment="Bottom" Margin="6 0 0 5"
+                      Grid.Column="0" Grid.ColumnSpan="2">
+            <TextBlock Margin="0 3" Text="Fuel Level:"/>
+            <Border Height="25" Grid.Column="0" Grid.ColumnSpan="2"
+                    BorderBrush="Black" BorderThickness="1">
+              <Image x:Name="FuelLevelImage" Height="25"/>
+            </Border>
+          </StackPanel>
+          
+          <!-- Rightmost Column -->
+          <StackPanel Grid.Column="1" Margin="3 3 0 0">
+            <StackPanel Height="22" Orientation="Horizontal">
+              <TextBlock VerticalAlignment="Center" Margin="0 2 3 2" Text="FPS:"/>
+              <!-- FPS: Number TextBox -->
+              <TextBox VerticalContentAlignment="Center" TextAlignment="Right" 
+                       Padding="2" Margin="0 0 0 0" Width="44"
+                       x:Name="FPSTextBox" IsReadOnly="True" Text="30"/>
+              <!-- Down Arrow -->
+              <Button FontSize="12" Width="22" Margin="2 0 2 0"
+                      Content="▼" x:Name="DownArrowButton"/>
+              <!-- Up Arrow -->
+              <Button FontSize="12" Width="22"
+                      Content="▲" x:Name="UpArrowButton"/>
+            </StackPanel>
+            
+            <!-- Wingman Callsign -->
+            <TextBlock Margin="0 5 0 2" Text="Wingman Callsign:"/>
+            <TextBox x:Name="WingmanCallsignTextBox"
+                     IsReadOnly="True" Padding="2"/>
+            
+            <!-- Wingman Kills -->
+            <TextBlock Margin="0 5 0 2" Text="Wingman Kills:"/>
+            <TextBox x:Name="WingmanKillsTextBox"
+                     IsReadOnly="True" Padding="2"/>
+            
+            <!-- Player Ship -->
+            <TextBlock Margin="0 50 0 2" Text="Player Ship:"/>
+            <TextBox x:Name="PlayerShipTextBox"
+                     IsReadOnly="True" Padding="2" Margin="0 0 0 20"/>
+
+            <!-- Indicator/Warning Lights -->
+            <!-- Auto Pilot Light -->
+            <StackPanel Orientation="Horizontal">
+              <TextBlock TextAlignment="Right"                         
+                         VerticalAlignment="Center"
+                         Width="85" Text="Auto Pilot:"/>
+              <Border Margin="6 3" BorderThickness="1" BorderBrush="#550000">
+                <Image x:Name="AutoPilotImage" Width="20" Height="20"/>
+              </Border>
+            </StackPanel>
+
+            <!-- Missile Lock Light -->
+            <StackPanel Orientation="Horizontal">
+              <TextBlock TextAlignment="Right"
+                         VerticalAlignment="Center"
+                         Width="85" Text="Missile Lock:"/>
+              
+              <Border Margin="6 3" BorderThickness="1" BorderBrush="#550000">
+                <Image x:Name="MissileLockImage" Width="20" Height="20"/>
+              </Border>
+            </StackPanel>
+
+            <!-- Eject Warning Light -->
+            <StackPanel Orientation="Horizontal">
+              <TextBlock TextAlignment="Right"
+                         VerticalAlignment="Center"
+                         Width="85" Text="Eject:"/>
+              
+              <Border Margin="6 3" BorderThickness="1" BorderBrush="#550000">
+                <Image x:Name="EjectImage" Width="20" Height="20"/>
+              </Border>
+            </StackPanel>
+          </StackPanel>
+        </Grid>
+      </Grid>
+    </StackPanel>
+  </Border>
+</Window>
