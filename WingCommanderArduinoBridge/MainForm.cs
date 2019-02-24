@@ -2,6 +2,7 @@
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
+using System.Runtime.InteropServices;
 using WingCommanderMemoryReader;
 
 namespace WingCommanderArduinoBridge
@@ -13,7 +14,15 @@ namespace WingCommanderArduinoBridge
         SaveFileDialog savePaletteDialog;
 
         Color[] palette = null;
+
+        Color DisabledLight = Color.FromArgb(113, 0, 0);
+        Color EnabledLight = Color.FromArgb(255, 0, 0);
+
         MemoryReader mem;
+
+        string CurrentPlayerShip;
+
+        public GameState CurrentGameState;
 
         public MainForm()
         {
@@ -42,8 +51,18 @@ namespace WingCommanderArduinoBridge
             // HACK - for debug purposes
             PaletteInputFileTextBox.Text = "F:\\GOG Games\\Wing Commander II\\capture\\palette.dat";
             palette = LoadPaletteFromFile(PaletteInputFileTextBox.Text);
+            mem.Palette = palette;
 
             DOSBoxTimer.Interval = 1000 / (int)FPSValueUpDown.Value;
+
+            AutoPilotLightPictureBox.BackColor = DisabledLight;
+            MissileLockLightPictureBox.BackColor = DisabledLight;
+            EjectBoxLightPictureBox.BackColor = DisabledLight;
+
+            BindingSource bs = new BindingSource();
+            bs.DataSource = typeof(GameState);
+            bs.Add(CurrentGameState);
+            PlayerCallsignTextBox.DataBindings.Add("Text", bs, "PlayerCallsign");
         }
 
         /// <summary>
@@ -162,6 +181,8 @@ namespace WingCommanderArduinoBridge
             LeftVDUPictureBox.Image = null;
             RightVDUPictureBox.Image = null;
 
+            AfterburnerFuelLevel.Value = 0;
+
             // HACK - probably a more elegant way of doing this, but it works
             foreach (Control control in DOSBoxTextPanel.Controls)
             {
@@ -194,21 +215,64 @@ namespace WingCommanderArduinoBridge
         /// <param name="e"></param>
         private void DOSBoxTimer_Tick(object sender, EventArgs e)
         {
-            // TODO - maybe encapsulate this into a structure
-            PlayerCallsignTextBox.Text = mem.GetPlayerCallsign();
-            PlayerFirstNameTextBox.Text = mem.GetPlayerFirstName();
-            PlayerLastNameTextBox.Text = mem.GetPlayerLastName();
-            WingmanCallsignTextBox.Text = mem.GetWingmanCallsign();
-            PlayerCurrentKillsTextBox.Text = mem.GetCurrentKills().ToString();
-            WingmanCurrentKillsTextBox.Text = mem.GetWingmanKills().ToString();
-            PlayerShipTextBox.Text = mem.GetPlayerShipName();
-            PlayerTotalKillsTextBox.Text = mem.GetTotalPlayerKills().ToString();
+            try
+            {
+                // TODO - maybe data binding
+                CurrentGameState = mem.GetGameState();
+                //PlayerCallsignTextBox.Text = CurrentGameState.PlayerCallsign;
+                PlayerFirstNameTextBox.Text = CurrentGameState.PlayerFirstName;
+                PlayerLastNameTextBox.Text = CurrentGameState.PlayerLastName;
+                WingmanCallsignTextBox.Text = CurrentGameState.WingmanCallsign;
+                PlayerCurrentKillsTextBox.Text = CurrentGameState.PlayerMissionKillCount.ToString();
+                WingmanCurrentKillsTextBox.Text = CurrentGameState.WingmanMissionKillCount.ToString();
+                if (CurrentGameState.PlayerShipName != CurrentPlayerShip)
+                {
+                    CurrentPlayerShip = CurrentGameState.PlayerShipName;
+                    PlayerShipTextBox.Text = CurrentPlayerShip;
+                    AfterburnerFuelLevel.Maximum = CurrentGameState.MaximumFuel;
+                }
+                PlayerTotalKillsTextBox.Text = CurrentGameState.PlayerTotalKillCount.ToString();
 
-            // capture the VGA buffer and separate into VDUs
-            Bitmap[] captures = mem.GetDisplayAndVDUs(palette);
-            VGAPictureBox.Image = captures[0];
-            RightVDUPictureBox.Image = captures[1];
-            LeftVDUPictureBox.Image = captures[2];
+                int fuel = CurrentGameState.RemainingFuel;
+                if (fuel > 0)
+                {
+                    float fuelPercentage = (float)fuel / AfterburnerFuelLevel.Maximum;
+                    if (fuelPercentage < 0.25)
+                    {
+                        AfterburnerFuelLevel.ForeColor = Color.Red;
+                        AfterburnerFuelLevel.BackColor = Color.DarkRed;
+                    }
+                    else if (fuelPercentage < 0.6)
+                    {
+                        AfterburnerFuelLevel.ForeColor = Color.Yellow;
+                        AfterburnerFuelLevel.BackColor = Color.Gold;
+                    }
+                    else
+                    {
+                        AfterburnerFuelLevel.ForeColor = Color.LightGreen;
+                        AfterburnerFuelLevel.BackColor = Color.DarkGreen;
+                    }
+                }
+
+                // clamp fuel between 0 and maximum because the memory isn't always consistent
+                // in edge cases (occasionally gets set out of bounds when you die) HACK ?
+                fuel = (fuel < AfterburnerFuelLevel.Maximum) ? fuel : AfterburnerFuelLevel.Maximum;
+                fuel = (fuel >= 0) ? fuel : 0;
+                AfterburnerFuelLevel.Value = fuel;
+
+                // capture the VGA buffer and separate into VDUs
+                VGAPictureBox.Image = CurrentGameState.VGABuffer;
+                RightVDUPictureBox.Image = CurrentGameState.RightVDU;
+                LeftVDUPictureBox.Image = CurrentGameState.LeftVDU;
+
+                // update indicator lights
+                AutoPilotLightPictureBox.BackColor = (CurrentGameState.AutoPilotLight) ? EnabledLight : DisabledLight;
+                MissileLockLightPictureBox.BackColor = (CurrentGameState.MissileLockLight) ? EnabledLight : DisabledLight;
+                EjectBoxLightPictureBox.BackColor = (CurrentGameState.EjectLight) ? EnabledLight : DisabledLight;
+            } catch (NullReferenceException)
+            {
+                DetachDOSBoxButton_Click(this, null);
+            }
         }
 
         /// <summary>
@@ -221,4 +285,14 @@ namespace WingCommanderArduinoBridge
             DOSBoxTimer.Interval = 1000 / (int)FPSValueUpDown.Value;
         }
     }
+
+/*    public static class ModifyProgressBarColor
+    {
+        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = false)]
+        static extern IntPtr SendMessage(IntPtr hWnd, uint Msg, IntPtr w, IntPtr l);
+        public static void SetState(this ProgressBar pBar, int state)
+        {
+            SendMessage(pBar.Handle, 1040, (IntPtr)state, IntPtr.Zero);
+        }
+    }*/
 }

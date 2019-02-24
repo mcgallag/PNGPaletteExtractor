@@ -7,10 +7,38 @@ namespace WingCommanderMemoryReader
     /// <summary>
     /// internal representation of which game to read from, used for indexing some variables
     /// </summary>
-    enum GameMode
+    public enum GameMode
     {
         WC1, WC2
     };
+
+    public class GameState
+    {
+        public GameMode game;
+
+        public Bitmap VGABuffer { get; set; }
+        public Bitmap LeftVDU { get; set; }
+        public Bitmap RightVDU { get; set; }
+
+        public string PlayerCallsign { get; set; }
+        public string PlayerFirstName { get; set; }
+        public string PlayerLastName { get; set; }
+        public string WingmanCallsign { get; set; }
+        public string PlayerShipName { get; set; }
+
+        public int PlayerSorties { get; set; }
+        public int PlayerTotalKillCount { get; set; }
+        public int WingmanMissionKillCount { get; set; }
+        public int PlayerMissionKillCount { get; set; }
+        public int SetKPS { get; set; }
+        public int PlayerRank { get; set; }
+        public int RemainingFuel { get; set; }
+        public int MaximumFuel { get; set; }
+
+        public bool AutoPilotLight { get; set; }
+        public bool MissileLockLight { get; set; }
+        public bool EjectLight { get; set; }
+    }
 
     /// <summary>
     /// Interface for reading memory values from DOSBox
@@ -23,6 +51,8 @@ namespace WingCommanderMemoryReader
 
         // to track which game we are playing, and therefore memory offsets
         private readonly GameMode game;
+
+        public Color[] Palette { get; set; }
 
         /// <summary>
         /// true if successfully hooked to the DOSBox process
@@ -159,7 +189,14 @@ namespace WingCommanderMemoryReader
         /// <summary>
         /// memory offset for player's remaining afterburner fuel
         /// </summary>
-        private const string remainingFuelOffsetWC1 = "0x2045C"; //WC1
+        private string RemainingFuelOffset
+        {
+            get => remainingFuelOffsets[(int)game];
+        }
+        private readonly string[] remainingFuelOffsets =
+        {
+            "0x2045C", "0x29DBA"
+        };
 
         /// <summary>
         /// memory offset for player's ship name
@@ -177,6 +214,16 @@ namespace WingCommanderMemoryReader
         /// used to properly calcuate number of player kills, set when we enter Halcyon's debriefing and cleared at mission start
         /// </summary>
         public bool DebriefMode = false;
+
+        /// <summary>
+        /// Used for ship-specific array indices
+        /// </summary>
+        private int shipIndex;
+
+        /// <summary>
+        /// VGA buffer raw data
+        /// </summary>
+        private byte[] vgaBuffer;
 
         /// <summary>
         /// instantiates a new MemoryReader
@@ -233,6 +280,12 @@ namespace WingCommanderMemoryReader
             }
         }
 
+        public void Update()
+        {
+            shipIndex = GetPlayerShipIndex();
+            vgaBuffer = GetVGABuffer();
+        }
+
         /// <summary>
         /// gets current ship index for Ship VDU layout
         /// </summary>
@@ -250,8 +303,9 @@ namespace WingCommanderMemoryReader
                     return 3;
                 case "Sabre":
                     return 4;
+                default:
+                    return 0;
             }
-            return -1;
         }
 
         /// <summary>
@@ -259,7 +313,7 @@ namespace WingCommanderMemoryReader
         /// </summary>
         private Point RightVduOffset
         {
-            get => rightVduOffsetPoints[GetPlayerShipIndex()];
+            get => rightVduOffsetPoints[shipIndex];
         }
         private readonly Point[] rightVduOffsetPoints =
         {
@@ -271,11 +325,72 @@ namespace WingCommanderMemoryReader
         };
 
         /// <summary>
+        /// pixel coordinates of the autopilot light
+        /// </summary>
+        private Point AutoPilotPixel
+        {
+            get => autoPilotPixelPoints[shipIndex];
+        }
+        private readonly Point[] autoPilotPixelPoints =
+        {
+            new Point(203, 103),    // ferret
+            new Point(237, 122),    // broadsword
+            new Point(170, 123),    // rapier
+            new Point(166, 95),     // epee
+            new Point(222, 107)     // sabre
+        };
+
+        /// <summary>
+        /// pixel coordinates of the autopilot light
+        /// </summary>
+        private Point MissileLockPixel
+        {
+            get => missileLockPixelPoints[shipIndex];
+        }
+        private readonly Point[] missileLockPixelPoints =
+        {
+            new Point(84, 113),    // ferret
+            new Point(65, 122),    // broadsword
+            new Point(133, 123),    // rapier
+            new Point(136, 95),    // epee
+            new Point(80, 107)     // sabre
+        };
+
+        /// <summary>
+        /// pixel coordinates of the eject light
+        /// </summary>
+        private Point EjectLightPixel
+        {
+            get => ejectLightPixelPoints[shipIndex];
+        }
+        private readonly Point[] ejectLightPixelPoints =
+        {
+            new Point(57, 130),    // ferret
+            new Point(149, 29),    // broadsword
+            new Point(137, 114),    // rapier
+            new Point(149, 17),    // epee
+            new Point(102, 107)     // sabre
+        };
+
+
+        /// <summary>
+        /// Maximum afterburner fuel level for current ship
+        /// </summary>
+        public int MaximumAfterburnerFuel
+        {
+            get => maximumFuelLevels[shipIndex];
+        }
+        private readonly int[] maximumFuelLevels =
+        {
+            200000, 280000, 250000, 300000, 200000
+        };
+
+        /// <summary>
         /// top-left pixel boundary of the Left VDU
         /// </summary>
         private Point LeftVduOffset
         {
-            get => leftVduOffsetPoints[GetPlayerShipIndex()];
+            get => leftVduOffsetPoints[shipIndex];
         }
         private readonly Point[] leftVduOffsetPoints =
         {
@@ -291,9 +406,9 @@ namespace WingCommanderMemoryReader
         /// </summary>
         private Size VduSize
         {
-            // BUG - throws exception when no valid ship name
-            get => vduSize[GetPlayerShipIndex()];
+            get => vduSize[shipIndex];
         }
+
         private readonly Size[] vduSize =
         {
             new Size(75, 65),   // ferret
@@ -307,11 +422,9 @@ namespace WingCommanderMemoryReader
         /// Generates bitmaps for VGA buffer and VDUs.
         /// If a ship only has one VDU, the odd (left) VDU will be empty
         /// </summary>
-        /// <param name="palette">palette to draw colors from</param>
         /// <returns>Array of 3 bitmaps (VGA buffer, left VDU, right VDU)</returns>
-        public Bitmap[] GetDisplayAndVDUs(Color[] palette)
+        public Bitmap[] GetDisplayAndVDUs()
         {
-            int shipindex = GetPlayerShipIndex();
             Size vdusize = VduSize;
             Bitmap[] images = {
                 new Bitmap(320, 200),
@@ -321,20 +434,17 @@ namespace WingCommanderMemoryReader
             Point offsetLeft = LeftVduOffset;
             Point offsetRight = RightVduOffset;
 
-            // get the current VGA buffer
-            byte[] buffer = GetVGABuffer();
-
-            for (int i = 0; i < buffer.Length; i++)
+            for (int i = 0; i < vgaBuffer.Length; i++)
             {
                 // write directly to the bitmap representing the VGA buffer
-                images[0].SetPixel(i % 320, i / 320, palette[buffer[i]]);
+                images[0].SetPixel(i % 320, i / 320, Palette[vgaBuffer[i]]);
 
                 // if we are within bounds of the right VDU, then write to it
                 if (i / 320 >= offsetRight.Y && (i / 320 < (offsetRight.Y + vdusize.Height)))
                 {
                     if (i % 320 >= offsetRight.X && (i % 320) < (offsetRight.X + vdusize.Width))
                     {
-                        images[1].SetPixel((i % 320) - offsetRight.X, (i / 320) - offsetRight.Y, palette[buffer[i]]);
+                        images[1].SetPixel((i % 320) - offsetRight.X, (i / 320) - offsetRight.Y, Palette[vgaBuffer[i]]);
                     }
                 }
 
@@ -343,12 +453,45 @@ namespace WingCommanderMemoryReader
                 {
                     if (i % 320 >= offsetLeft.X && (i % 320) < (offsetLeft.X + vdusize.Width))
                     {
-                        images[2].SetPixel((i % 320) - offsetLeft.X, (i / 320) - offsetLeft.Y, palette[buffer[i]]);
+                        images[2].SetPixel((i % 320) - offsetLeft.X, (i / 320) - offsetLeft.Y, Palette[vgaBuffer[i]]);
                     }
                 }
             }
 
             return images;
+        }
+
+        /// <summary>
+        /// Returns true if Auto Pilot indicator light is lit
+        /// </summary>
+        /// <returns></returns>
+        public bool AutoPilotReady()
+        {
+            Point point = AutoPilotPixel;
+            int offset = point.Y * 320 + point.X;
+            return vgaBuffer[offset] == 71;
+        }
+
+        /// <summary>
+        /// Returns true if missile Lock warning light is lit
+        /// </summary>
+        /// <returns></returns>
+        public bool MissileLockLight()
+        {
+            Point point = MissileLockPixel;
+            int offset = point.Y * 320 + point.X;
+            return vgaBuffer[offset] == 71;
+        }
+
+        /// <summary>
+        /// Returns true if Eject warning light is lit
+        /// </summary>
+        /// <returns></returns>
+        public bool EjectLight()
+        {
+            Point point = EjectLightPixel;
+            int offset = point.Y * 320 + point.X;
+            return vgaBuffer[offset] == 71;
         }
 
         /// <summary>
@@ -517,10 +660,68 @@ namespace WingCommanderMemoryReader
         {
             if (OpenProc)
             {
+                if (game == GameMode.WC2) return 0;
                 string addr = memoryBase + "," + RankOffset;
                 return m.read2Byte(addr);
             }
             throw new DOSBoxMemoryException("Must hook to DOSBox process before reading memory.");
+        }
+
+        public int GetRemainingFuel()
+        {
+            if (OpenProc)
+            {
+                if (game == GameMode.WC2)
+                {
+                    return GetRemainingFuelWC2();
+                }
+                string addr = memoryBase + "," + RemainingFuelOffset;
+                return m.readInt(addr);
+            }
+            throw new DOSBoxMemoryException("Must hook to DOSBox process before reading memory.");
+        }
+
+        /// <summary>
+        /// Fetches remaining fuel from DOSBox memory
+        /// </summary>
+        /// <returns>remaining fuel</returns>
+        private int GetRemainingFuelWC2()
+        {
+            // for some reason WC2 stores remaining fuel in little-endian, so convert it
+            string addr = memoryBase + "," + RemainingFuelOffset;
+            byte[] b = m.readBytes(addr, 4);
+            return b[0] + (b[1] << 8) + (b[2] << 16) + (b[3] << 24);
+        }
+
+        public GameState GetGameState()
+        {
+            Update();
+            GameState state = new GameState();
+            Bitmap[] b = GetDisplayAndVDUs();
+            state.VGABuffer = b[0];
+            state.LeftVDU = b[1];
+            state.RightVDU = b[2];
+
+            state.PlayerCallsign = GetPlayerCallsign();
+            state.PlayerFirstName = GetPlayerFirstName();
+            state.PlayerLastName = GetPlayerLastName();
+            state.WingmanCallsign = GetWingmanCallsign();
+            state.PlayerShipName = GetPlayerShipName();
+
+            state.PlayerSorties = GetSorties();
+            state.PlayerTotalKillCount = GetTotalPlayerKills();
+            state.WingmanMissionKillCount = GetWingmanKills();
+            state.PlayerMissionKillCount = GetCurrentKills();
+            state.SetKPS = GetSetKPS();
+            state.PlayerRank = GetRank();
+            state.RemainingFuel = GetRemainingFuel();
+            state.MaximumFuel = MaximumAfterburnerFuel;
+
+            state.AutoPilotLight = AutoPilotReady();
+            state.MissileLockLight = MissileLockLight();
+            state.EjectLight = EjectLight();
+
+            return state;
         }
     }
 

@@ -1,5 +1,54 @@
-﻿namespace WingCommanderArduinoBridge
+﻿using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Windows.Forms;
+
+namespace WingCommanderArduinoBridge
 {
+    /// <summary>
+    /// Extends default ProgressBar to allow for changing the color
+    /// of the control. Set ForeColor and BackColor to the desired
+    /// gradient colors.
+    /// </summary>
+    /// Courtesy of:
+    ///    https://stackoverflow.com/a/7490884/10148350
+    public class ColoredProgressBar : System.Windows.Forms.ProgressBar
+    {
+        public ColoredProgressBar()
+        {
+            this.SetStyle(System.Windows.Forms.ControlStyles.UserPaint, true);
+        }
+
+        protected override void OnPaintBackground(PaintEventArgs pevent)
+        {
+            // do nothing, controls flicker
+        }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            const int inset = 2;
+
+            using (Image offscreenImage = new Bitmap(this.Width, this.Height))
+            {
+                using (Graphics offscreen = Graphics.FromImage(offscreenImage))
+                {
+                    Rectangle rect = new Rectangle(0, 0, this.Width, this.Height);
+
+                    if (ProgressBarRenderer.IsSupported)
+                        ProgressBarRenderer.DrawHorizontalBar(offscreen, rect);
+
+                    rect.Inflate(new Size(-inset, -inset)); // deflate inner rectangle
+                    rect.Width = (int)(rect.Width * ((double)this.Value / this.Maximum));
+                    if (rect.Width == 0) rect.Width = 1; // can't draw rectangle with width of 0
+
+                    LinearGradientBrush brush = new LinearGradientBrush(rect, this.BackColor, this.ForeColor, LinearGradientMode.Vertical);
+                    offscreen.FillRectangle(brush, inset, inset, rect.Width, rect.Height);
+
+                    e.Graphics.DrawImage(offscreenImage, 0, 0);
+                    offscreenImage.Dispose();
+                }
+            }
+        }
+    }
     partial class MainForm
     {
         /// <summary>
@@ -61,13 +110,26 @@
             this.PlayerShipTextBox = new System.Windows.Forms.TextBox();
             this.label12 = new System.Windows.Forms.Label();
             this.DOSBoxTextPanel = new System.Windows.Forms.Panel();
+            this.label17 = new System.Windows.Forms.Label();
+            this.label16 = new System.Windows.Forms.Label();
+            this.EjectBoxLightPictureBox = new System.Windows.Forms.PictureBox();
+            this.MissileLockLightPictureBox = new System.Windows.Forms.PictureBox();
+            this.label15 = new System.Windows.Forms.Label();
+            this.AutoPilotLightPictureBox = new System.Windows.Forms.PictureBox();
+            this.label14 = new System.Windows.Forms.Label();
+            this.AfterburnerFuelLevel = new WingCommanderArduinoBridge.ColoredProgressBar();
             this.PlayerTotalKillsTextBox = new System.Windows.Forms.TextBox();
             this.label13 = new System.Windows.Forms.Label();
+            this.gameStateBindingSource = new System.Windows.Forms.BindingSource(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.VGAPictureBox)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.LeftVDUPictureBox)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.FPSValueUpDown)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.RightVDUPictureBox)).BeginInit();
             this.DOSBoxTextPanel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.EjectBoxLightPictureBox)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.MissileLockLightPictureBox)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.AutoPilotLightPictureBox)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.gameStateBindingSource)).BeginInit();
             this.SuspendLayout();
             // 
             // label1
@@ -145,7 +207,7 @@
             // 
             // DOSBoxButton
             // 
-            this.DOSBoxButton.Location = new System.Drawing.Point(366, 72);
+            this.DOSBoxButton.Location = new System.Drawing.Point(369, 72);
             this.DOSBoxButton.Name = "DOSBoxButton";
             this.DOSBoxButton.Size = new System.Drawing.Size(106, 23);
             this.DOSBoxButton.TabIndex = 9;
@@ -350,6 +412,14 @@
             // 
             // DOSBoxTextPanel
             // 
+            this.DOSBoxTextPanel.Controls.Add(this.label17);
+            this.DOSBoxTextPanel.Controls.Add(this.label16);
+            this.DOSBoxTextPanel.Controls.Add(this.EjectBoxLightPictureBox);
+            this.DOSBoxTextPanel.Controls.Add(this.MissileLockLightPictureBox);
+            this.DOSBoxTextPanel.Controls.Add(this.label15);
+            this.DOSBoxTextPanel.Controls.Add(this.AutoPilotLightPictureBox);
+            this.DOSBoxTextPanel.Controls.Add(this.label14);
+            this.DOSBoxTextPanel.Controls.Add(this.AfterburnerFuelLevel);
             this.DOSBoxTextPanel.Controls.Add(this.PlayerTotalKillsTextBox);
             this.DOSBoxTextPanel.Controls.Add(this.label13);
             this.DOSBoxTextPanel.Controls.Add(this.label3);
@@ -368,8 +438,79 @@
             this.DOSBoxTextPanel.Controls.Add(this.label9);
             this.DOSBoxTextPanel.Location = new System.Drawing.Point(366, 99);
             this.DOSBoxTextPanel.Name = "DOSBoxTextPanel";
-            this.DOSBoxTextPanel.Size = new System.Drawing.Size(241, 302);
+            this.DOSBoxTextPanel.Size = new System.Drawing.Size(241, 353);
             this.DOSBoxTextPanel.TabIndex = 29;
+            // 
+            // label17
+            // 
+            this.label17.AutoSize = true;
+            this.label17.Location = new System.Drawing.Point(159, 232);
+            this.label17.Name = "label17";
+            this.label17.Size = new System.Drawing.Size(34, 13);
+            this.label17.TabIndex = 37;
+            this.label17.Text = "Eject:";
+            // 
+            // label16
+            // 
+            this.label16.AutoSize = true;
+            this.label16.Location = new System.Drawing.Point(125, 206);
+            this.label16.Name = "label16";
+            this.label16.Size = new System.Drawing.Size(68, 13);
+            this.label16.TabIndex = 37;
+            this.label16.Text = "Missile Lock:";
+            // 
+            // EjectBoxLightPictureBox
+            // 
+            this.EjectBoxLightPictureBox.BackColor = System.Drawing.SystemColors.ControlDark;
+            this.EjectBoxLightPictureBox.Location = new System.Drawing.Point(193, 229);
+            this.EjectBoxLightPictureBox.Name = "EjectBoxLightPictureBox";
+            this.EjectBoxLightPictureBox.Size = new System.Drawing.Size(20, 20);
+            this.EjectBoxLightPictureBox.TabIndex = 36;
+            this.EjectBoxLightPictureBox.TabStop = false;
+            // 
+            // MissileLockLightPictureBox
+            // 
+            this.MissileLockLightPictureBox.BackColor = System.Drawing.SystemColors.ControlDark;
+            this.MissileLockLightPictureBox.Location = new System.Drawing.Point(193, 203);
+            this.MissileLockLightPictureBox.Name = "MissileLockLightPictureBox";
+            this.MissileLockLightPictureBox.Size = new System.Drawing.Size(20, 20);
+            this.MissileLockLightPictureBox.TabIndex = 36;
+            this.MissileLockLightPictureBox.TabStop = false;
+            // 
+            // label15
+            // 
+            this.label15.AutoSize = true;
+            this.label15.Location = new System.Drawing.Point(138, 178);
+            this.label15.Name = "label15";
+            this.label15.Size = new System.Drawing.Size(55, 13);
+            this.label15.TabIndex = 35;
+            this.label15.Text = "Auto Pilot:";
+            // 
+            // AutoPilotLightPictureBox
+            // 
+            this.AutoPilotLightPictureBox.BackColor = System.Drawing.SystemColors.ControlDark;
+            this.AutoPilotLightPictureBox.Location = new System.Drawing.Point(193, 175);
+            this.AutoPilotLightPictureBox.Name = "AutoPilotLightPictureBox";
+            this.AutoPilotLightPictureBox.Size = new System.Drawing.Size(20, 20);
+            this.AutoPilotLightPictureBox.TabIndex = 34;
+            this.AutoPilotLightPictureBox.TabStop = false;
+            // 
+            // label14
+            // 
+            this.label14.AutoSize = true;
+            this.label14.Location = new System.Drawing.Point(3, 311);
+            this.label14.Name = "label14";
+            this.label14.Size = new System.Drawing.Size(59, 13);
+            this.label14.TabIndex = 33;
+            this.label14.Text = "Fuel Level:";
+            // 
+            // AfterburnerFuelLevel
+            // 
+            this.AfterburnerFuelLevel.Location = new System.Drawing.Point(3, 327);
+            this.AfterburnerFuelLevel.Name = "AfterburnerFuelLevel";
+            this.AfterburnerFuelLevel.Size = new System.Drawing.Size(235, 23);
+            this.AfterburnerFuelLevel.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
+            this.AfterburnerFuelLevel.TabIndex = 32;
             // 
             // PlayerTotalKillsTextBox
             // 
@@ -387,6 +528,10 @@
             this.label13.Size = new System.Drawing.Size(89, 13);
             this.label13.TabIndex = 29;
             this.label13.Text = "Player Kills (total):";
+            // 
+            // gameStateBindingSource
+            // 
+            this.gameStateBindingSource.DataSource = typeof(WingCommanderMemoryReader.GameState);
             // 
             // MainForm
             // 
@@ -419,6 +564,10 @@
             ((System.ComponentModel.ISupportInitialize)(this.RightVDUPictureBox)).EndInit();
             this.DOSBoxTextPanel.ResumeLayout(false);
             this.DOSBoxTextPanel.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.EjectBoxLightPictureBox)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.MissileLockLightPictureBox)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.AutoPilotLightPictureBox)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.gameStateBindingSource)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -459,6 +608,15 @@
         private System.Windows.Forms.Panel DOSBoxTextPanel;
         private System.Windows.Forms.TextBox PlayerTotalKillsTextBox;
         private System.Windows.Forms.Label label13;
+        private System.Windows.Forms.Label label14;
+        private System.Windows.Forms.PictureBox AutoPilotLightPictureBox;
+        private System.Windows.Forms.Label label17;
+        private System.Windows.Forms.Label label16;
+        private System.Windows.Forms.PictureBox EjectBoxLightPictureBox;
+        private System.Windows.Forms.PictureBox MissileLockLightPictureBox;
+        private System.Windows.Forms.Label label15;
+        private BindingSource gameStateBindingSource;
+        private ColoredProgressBar AfterburnerFuelLevel;
     }
 }
 
